@@ -1,19 +1,34 @@
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::{self, BufRead};
 use std::path::Path;
+//use std::collections::HashMap;
 
+pub struct Records {
+    win:  i32,
+    loss: i32,
+}
+    
 fn main() {
-    let path = Path::new("data/records.txt");
-    let display = path.display();
 
-    let mut file = match File::open(&path) {
-        Err(why) => panic!("couldn't open {}: {}", display, why),
-        Ok(file) => file,
-    };
+    //let mut team_map = HashMap::new();
 
-    let mut s = String::new();
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("couldn't read {}: {}", display, why),
-        Ok(_) => print!("{} contains:\n{}", display, s),
+    if let Ok(lines) = read_lines("data/records.txt") {
+        for line in lines {
+            if let Ok(ip) = line {
+                println!("inserting {}", ip);
+                let parts: Vec<&str> = ip.split(":").collect();
+                let record = Records {
+                    win:  parts[1].parse().unwrap(),
+                    loss: parts[2].parse().unwrap(),
+                };
+            }
+        }
     }
+
+}
+
+fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where P: AsRef<Path>, {
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
 }
